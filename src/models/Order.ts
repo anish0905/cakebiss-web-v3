@@ -11,9 +11,27 @@ const OrderSchema = new Schema({
     }
   ],
   totalAmount: { type: Number, required: true },
+  deliveryCharge: { type: Number, default: 0 },
   address: { type: String, required: true },
+  pincode: { type: String, required: true },
   phone: { type: String, required: true },
-  status: { type: String, default: 'Pending', enum: ['Pending', 'Processing', 'Shipped', 'Delivered'] },
+  
+  // --- New Customization Fields ---
+  deliveryDate: { type: String, required: true }, // Delivery kab chahiye
+  occasion: { 
+    type: String, 
+    enum: ['Birthday', 'Anniversary', 'Wedding', 'Other'], 
+    default: 'Birthday' 
+  },
+  cakeMessage: { type: String }, // Cake par kya likhna hai (e.g. Happy Birthday Rahul)
+  instructions: { type: String }, // Extra note (e.g. Make it eggless)
+  // -------------------------------
+
+  status: { 
+    type: String, 
+    default: 'Pending', 
+    enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] 
+  },
 }, { timestamps: true });
 
 export default models.Order || model('Order', OrderSchema);

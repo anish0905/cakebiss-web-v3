@@ -1,4 +1,5 @@
 import AddToCartBtn from "../components/AddToCartBtn";
+import FallingCakes from "../components/FallingCakes";
 import dbConnect from "../lib/dbConnect";
 import Cake from "../models/Cake";
 import Link from "next/link";
@@ -14,6 +15,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-[#fffcf9]">
+      <FallingCakes/>
       {/* --- HERO SECTION --- */}
       <section className="relative h-[85vh] flex items-center justify-center overflow-hidden bg-cake-cream/30 px-6">
         {/* Background Decorative Elements */}
@@ -114,7 +116,7 @@ export default async function Home() {
       {/* --- PROMO BANNER (NEW) --- */}
       <section className="px-6 pb-20">
         <div className="max-w-7xl mx-auto bg-cake-brown rounded-[3rem] p-10 md:p-20 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-10 opacity-10 text-9xl">🎂</div>
+          <div className="absolute top-0 right-0 p-10 opacity-80 text-9xl">🎂</div>
           <h2 className="text-3xl md:text-5xl font-serif text-cake-gold italic mb-6">Planning a grand celebration?</h2>
           <p className="text-cake-cream/70 max-w-xl mx-auto mb-10 text-lg">
             Hum customized wedding aur event cakes mein specialize karte hain. Aaj hi apna slot book karein.
