@@ -47,7 +47,7 @@ export default function SignupPage() {
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             required
           />
-          <button className="w-full bg-cake-gold text-white font-bold py-4 rounded-xl">
+          <button className="w-full bg-cake-gold text-black font-bold py-4 rounded-xl">
             Register
           </button>
         </form>
