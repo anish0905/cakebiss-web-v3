@@ -39,38 +39,49 @@ export default function CheckoutPage() {
 
   const finalTotal = subtotal + deliveryCharge;
 
-  const handleOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const finalAddress = selectedAddress || address;
+ const handleOrder = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!finalAddress || pincode.length !== 6 || phone.length < 10 || !deliveryDate) {
-      alert("Please ensure Address, Pincode, Phone and Delivery Date are filled.");
-      return;
-    }
+  // 1. Login Check: Agar session nahi hai toh alert dikhao aur return kar jao
+  if (!session) {
+    alert("⚠️ Please Login first to place your order!");
+    // Optional: User ko login page par redirect karne ke liye niche wali line uncomment karein
+    // router.push("/api/auth/signin"); 
+    return;
+  }
 
-    const res = await fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        items: cart, 
-        totalAmount: finalTotal, 
-        deliveryCharge, 
-        address: finalAddress, 
-        pincode, 
-        phone,
-        deliveryDate,
-        occasion,
-        cakeMessage
-      }),
-    });
+  const finalAddress = selectedAddress || address;
 
-    if (res.ok) {
-      alert("🍰 Your sweet order has been placed!");
-      clearCart();
-      router.push("/profile");
-      router.refresh();
-    }
-  };
+  // 2. Validation Check
+  if (!finalAddress || pincode.length !== 6 || phone.length < 10 || !deliveryDate) {
+    alert("Please ensure Address, Pincode, Phone and Delivery Date are filled.");
+    return;
+  }
+
+  // 3. API Call
+  const res = await fetch("/api/orders", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      items: cart, 
+      totalAmount: finalTotal, 
+      deliveryCharge, 
+      address: finalAddress, 
+      pincode, 
+      phone,
+      deliveryDate,
+      occasion,
+      cakeMessage
+    }),
+  });
+
+  if (res.ok) {
+    alert("🍰 Your sweet order has been placed!");
+    clearCart();
+    router.push("/profile");
+    router.refresh();
+  }
+};
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-6 min-h-screen">
@@ -219,13 +230,23 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <button 
-              onClick={handleOrder}
-              disabled={cart.length === 0}
-              className="w-full bg-cake-gold text-black py-6 rounded-full font-black uppercase tracking-[0.2em] text-xs hover:bg-white hover:scale-[1.02] transition-all shadow-lg active:scale-95 disabled:opacity-20"
-            >
-              Place Order
-            </button>
+   <button 
+  onClick={handleOrder}
+  disabled={cart.length === 0}
+  className={`w-full py-6 rounded-full font-black uppercase tracking-[0.2em] text-[13px] transition-all duration-300 shadow-xl active:scale-95 disabled:opacity-30 
+    ${session 
+      ? "bg-cake-gold text-black hover:bg-[#f3cf65] hover:shadow-[0_0_25px_rgba(212,175,55,0.5)]" 
+      : "bg-[#1a1a1a] text-cake-gold border border-cake-gold/30 hover:bg-black hover:border-cake-gold"
+    }`}
+>
+  {session ? (
+    <span className="flex items-center justify-center gap-2 text-white">
+       Place Order <span className="text-lg">✨</span>
+    </span>
+  ) : (
+    "Login to Checkout"
+  )}
+</button>
           </div>
         </div>
 
