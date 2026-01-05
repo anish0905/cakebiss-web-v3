@@ -1,130 +1,174 @@
-import AddToCartBtn from "../components/AddToCartBtn";
-import FallingCakes from "../components/FallingCakes";
-import dbConnect from "../lib/dbConnect";
-import Cake from "../models/Cake";
+"use client";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Star, Truck, ShieldCheck, Heart, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import FallingCakes from "../components/FallingCakes";
+import AddToCartBtn from "../components/AddToCartBtn";
 
-async function getCakes() {
-  await dbConnect();
-  const cakes = await Cake.find({}).limit(4).lean(); // Home par sirf top 4 best sellers
-  return JSON.parse(JSON.stringify(cakes));
-}
 
-export default async function Home() {
-  const cakes = await getCakes();
+export default function Home() {
+  const [cakes, setCakes] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/cakes?limit=4")
+      .then((res) => res.json())
+      .then((json) => setCakes(json.data.slice(0, 4)));
+  }, []);
 
   return (
-    <main className="min-h-screen bg-[#fffcf9]">
+    <main className="min-h-screen bg-[#fffcf9] overflow-hidden">
       <FallingCakes/>
+
       {/* --- HERO SECTION --- */}
-      <section className="relative h-[85vh] flex items-center justify-center overflow-hidden bg-cake-cream/30 px-6">
-        {/* Background Decorative Elements */}
-        <div className="absolute top-10 left-10 w-32 h-32 bg-cake-gold/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-10 right-10 w-64 h-64 bg-cake-brown/5 rounded-full blur-3xl" />
+      <section className="relative min-h-[90vh] flex items-center justify-center px-6 pt-20">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-cake-gold/10 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-cake-brown/5 rounded-full blur-[150px]" />
+        </div>
 
-        <div className="max-w-5xl mx-auto text-center z-10">
-          <span className="text-cake-gold font-bold tracking-[0.3em] uppercase text-xs mb-4 block animate-fade-in">
+        <div className="max-w-6xl mx-auto text-center z-10">
+          <motion.span 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-cake-gold font-black tracking-[0.4em] uppercase text-[10px] md:text-xs mb-6 block"
+          >
             Est. 2024 • Artisanal Patisserie
-          </span>
-          <h1 className="text-5xl md:text-8xl font-serif text-cake-brown mb-6 leading-[1.1] italic">
-            Handcrafted <span className="not-italic font-black text-cake-gold">Happiness</span> <br /> 
-            in Every Bite
-          </h1>
-          <p className="text-base md:text-xl text-cake-brown/70 mb-10 max-w-2xl mx-auto font-medium">
-            Experience the finest organic ingredients blended with master craftsmanship. 
-            Delivered fresh from our oven to your celebration.
-          </p>
-         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10">
-  {/* Primary Button: Dark Brown with Gold Hover */}
- <Link 
-  href="/cakes" 
-  className="w-full sm:w-auto bg-cake-brown text-black px-10 py-4 rounded-full font-bold transition-all duration-300 shadow-[0_10px_30px_rgba(61,37,20,0.3)] hover:bg-cake-gold hover:shadow-cake-gold/40 hover:-translate-y-1 text-sm uppercase tracking-[0.2em] text-center"
->
-  Explore Collection
-</Link>
+          </motion.span>
+          
+          <motion.h1 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-5xl md:text-9xl font-serif text-black mb-8 leading-[1] italic tracking-tight"
+          >
+            Handcrafted <br />
+            <span className="not-italic font-black text-cake-gold">Boutique</span> Cakes
+          </motion.h1>
 
-  {/* Secondary Button: Outline style for balanced UI */}
-  <Link href="/about" className="w-full sm:w-auto bg-white border border-cake-brown/20 text-cake-brown px-10 py-4 rounded-full font-black text-[11px] uppercase tracking-[0.2em] hover:bg-cake-cream/50 transition-all duration-500 text-center">
-    Our Story
-  </Link>
-</div>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-gray-500 text-sm md:text-xl mb-12 max-w-2xl mx-auto font-medium leading-relaxed"
+          >
+            Experience the fusion of organic ingredients and master craftsmanship. 
+            Delivered fresh from our boutique oven to your sanctuary.
+          </motion.p>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <Link href="/cakes" className="group w-full sm:w-auto bg-black text-white px-12 py-5 rounded-full font-black text-[11px] uppercase tracking-widest transition-all hover:bg-cake-gold hover:text-black flex items-center justify-center gap-3">
+              Explore Collection <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
+            </Link>
+            <Link href="/about" className="w-full sm:w-auto bg-white border border-black/5 px-12 py-5 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-gray-50 transition-all text-center">
+              Our Story
+            </Link>
+          </motion.div>
         </div>
       </section>
 
-      {/* --- QUICK CATEGORIES (NEW) --- */}
-      <section className="py-12 bg-white border-y border-cake-gold/5">
-        <div className="max-w-7xl mx-auto px-6 flex flex-wrap justify-center gap-8 md:gap-16 opacity-60">
-          {['Chocolate', 'Wedding', 'Birthday', 'Custom'].map((cat) => (
-            <div key={cat} className="flex items-center space-x-2 grayscale hover:grayscale-0 transition-all cursor-pointer">
-              <span className="text-2xl">🍰</span>
-              <span className="font-serif font-bold text-cake-brown">{cat}</span>
-            </div>
+      {/* --- WHY US (NEW FEATURES) --- */}
+      <section className="py-24 bg-white border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+          {[
+            { icon: <Truck className="mx-auto text-cake-gold" />, title: "Express Delivery", desc: "Fresh cakes delivered in under 2 hours in local areas." },
+            { icon: <ShieldCheck className="mx-auto text-cake-gold" />, title: "Premium Ingredients", desc: "We use only 100% organic flour and artisanal Belgian chocolate." },
+            { icon: <Heart className="mx-auto text-cake-gold" />, title: "Customized for You", desc: "Personalize messages and designs for your special moments." },
+          ].map((item, i) => (
+            <motion.div 
+              key={i}
+              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              viewport={{ once: true }}
+              className="space-y-4"
+            >
+              <div className="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                {item.icon}
+              </div>
+              <h3 className="text-lg font-black uppercase tracking-widest">{item.title}</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+            </motion.div>
           ))}
         </div>
       </section>
 
-      {/* --- BEST SELLERS GRID --- */}
-      <section className="py-20 px-6 md:px-12 lg:px-20 max-w-[1440px] mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
-          <div>
-            <h2 className="text-4xl md:text-5xl font-serif text-cake-brown italic">Our Best Sellers</h2>
-            <div className="h-1 w-20 bg-cake-gold mt-4" />
+      {/* --- BEST SELLERS --- */}
+      <section className="py-32 px-6 max-w-[1440px] mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+          <div className="max-w-xl">
+            <h2 className="text-4xl md:text-7xl font-serif text-black italic leading-none">The Best Sellers</h2>
+            <p className="mt-6 text-gray-400 font-bold uppercase text-[10px] tracking-[0.3em]">Curation of our finest masterpieces</p>
           </div>
-          <Link href="/cakes" className="text-cake-gold font-bold border-b-2 border-cake-gold pb-1 hover:text-cake-brown hover:border-cake-brown transition-all">
+          <Link href="/cakes" className="text-[11px] font-black uppercase tracking-widest border-b-2 border-black pb-2 hover:text-cake-gold hover:border-cake-gold transition-all">
             View All Creations →
           </Link>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-          {cakes.map((cake: any) => (
-            <div key={cake._id} className="group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-[0_20px_50px_rgba(61,37,20,0.1)] transition-all duration-500 border border-cake-gold/5 flex flex-col h-full">
-              {/* Image Container */}
-              <div className="relative h-72 overflow-hidden">
-                <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors z-10" />
-                <img 
-                  src={cake.image} 
-                  alt={cake.name} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="absolute top-4 left-4 z-20">
-                  <span className="bg-white/90 backdrop-blur-md px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter text-cake-brown shadow-sm">
-                    {cake.category}
-                  </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {cakes.map((cake: any, idx) => (
+            <motion.div 
+              key={cake._id} 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              viewport={{ once: true }}
+              className="group bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 flex flex-col h-full hover:shadow-2xl transition-all duration-500"
+            >
+              <div className="relative h-80 overflow-hidden">
+                <img src={cake.image} alt={cake.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute top-6 left-6">
+                  <span className="bg-black text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest">{cake.category}</span>
                 </div>
               </div>
-
-              {/* Content */}
-              <div className="p-6 flex flex-col flex-grow text-center items-center">
-                <h3 className="text-xl font-serif font-bold text-cake-brown mb-2">{cake.name}</h3>
-                <p className="text-gray-400 text-xs line-clamp-2 mb-4 leading-relaxed italic">
-                  "{cake.description}"
-                </p>
-                
-                <div className="mt-auto w-full pt-4 border-t border-gray-50 flex items-center justify-between">
+              <div className="p-8 flex flex-col flex-grow text-center">
+                <h3 className="text-xl font-serif font-black mb-2 italic text-black">{cake.name}</h3>
+                <p className="text-gray-400 text-xs mb-6 italic leading-relaxed">"{cake.description}"</p>
+                <div className="mt-auto flex items-center justify-between pt-6 border-t border-gray-50">
                   <div className="text-left">
-                    <span className="text-[10px] block text-gray-400 font-bold uppercase">Price</span>
-                    <span className="text-xl font-bold text-cake-brown">${cake.price}</span>
+                    <span className="text-2xl font-black text-black">₹{cake.price}</span>
                   </div>
-                  <AddToCartBtn cake={cake} />
+                  <AddToCartBtn cake={cake}/>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
 
-      {/* --- PROMO BANNER (NEW) --- */}
-      <section className="px-6 pb-20">
-        <div className="max-w-7xl mx-auto bg-cake-brown rounded-[3rem] p-10 md:p-20 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-10 opacity-80 text-9xl">🎂</div>
-          <h2 className="text-3xl md:text-5xl font-serif text-cake-gold italic mb-6">Planning a grand celebration?</h2>
-          <p className="text-cake-cream/70 max-w-xl mx-auto mb-10 text-lg">
-            Hum customized wedding aur event cakes mein specialize karte hain. Aaj hi apna slot book karein.
-          </p>
-          <Link href="/contact" className="bg-cake-gold text-white px-10 py-4 rounded-full font-black uppercase text-xs tracking-widest hover:bg-white hover:text-cake-brown transition-all">
-            Get a Quote
-          </Link>
+      {/* --- LUXURY REVIEWS SECTION (NEW) --- */}
+      <section className="py-32 bg-black text-white px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="flex justify-center gap-1 mb-10">
+            {[...Array(5)].map((_, i) => <Star key={i} fill="#D4AF37" color="#D4AF37" size={20} />)}
+          </div>
+          <h2 className="text-3xl md:text-5xl font-serif italic mb-10 leading-snug">
+            "The most exquisite Chocolate Truffle I've ever tasted. It's not just a cake, it's a piece of art delivered to your doorstep."
+          </h2>
+          <p className="text-cake-gold font-black uppercase tracking-[0.3em] text-xs">— Ananya Sharma, Delhi</p>
         </div>
+      </section>
+
+      {/* --- FINAL CTA BANNER --- */}
+      <section className="px-6 py-24">
+        <motion.div 
+          whileInView={{ scale: 0.98 }}
+          transition={{ duration: 1 }}
+          className="max-w-7xl mx-auto bg-cake-gold rounded-[4rem] p-12 md:p-32 text-center relative overflow-hidden shadow-2xl"
+        >
+          <div className="absolute -top-10 -right-10 text-[200px] opacity-40 rotate-12 select-none">🎂</div>
+          <h2 className="text-4xl md:text-8xl font-serif text-black italic mb-8 tracking-tighter">Grand Occasions?</h2>
+          <p className="text-black/60 max-w-xl mx-auto mb-12 text-lg font-medium leading-relaxed">
+            Planning a wedding or a luxury event? Our chefs work directly with you to create your dream masterpiece.
+          </p>
+          <Link href="/contact" className="bg-black text-white px-14 py-6 rounded-full font-black uppercase text-[11px] tracking-[0.3em] hover:bg-white hover:text-black transition-all inline-block shadow-xl">
+            Book Private Session
+          </Link>
+        </motion.div>
       </section>
     </main>
   );

@@ -1,5 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Download, Phone, Calendar, Gift, MessageCircle, ArrowLeft, MapPin, ShoppingBag } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable"; 
+import Link from "next/link";
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -25,185 +29,204 @@ export default function AdminOrders() {
       body: JSON.stringify({ status: newStatus }),
     });
     if (res.ok) {
-      alert("Status Updated!");
+      alert(`Status updated to ${newStatus}`);
       fetchOrders();
     }
   };
 
+  // --- WhatsApp Automation ---
+  const sendWhatsApp = (order: any) => {
+    const phoneNumber = order.phone.replace(/\D/g, ''); 
+    const itemsList = order.items.map((i: any) => `- ${i.name} (x${i.quantity})`).join('\n');
+    let message = `*CakeBiss Artisanal Patisserie* 🎂\n\n`;
+    message += `*Order:* #${order._id.slice(-6)}\n`;
+    message += `*Items:*\n${itemsList}\n\n`;
+
+    if (order.status === 'Processing') {
+      message += `Hi! Aapka order kitchen mein fresh bake ho raha hai. 🥣✨`;
+    } else if (order.status === 'Shipped') {
+      message += `Khushkhabri! Aapka order delivery ke liye nikal chuka hai. 🚚💨`;
+    } else if (order.status === 'Delivered') {
+      message += `Aapka order deliver ho gaya hai. Feedback zaroor share karein! 🍰❤️`;
+    }
+
+    const whatsappUrl = `https://wa.me/91${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  // --- Bill Generation ---
+  const generateBill = (order: any) => {
+    const doc = new jsPDF();
+    doc.setFontSize(22);
+    doc.setTextColor(212, 175, 55);
+    doc.text("CakeBiss Artisanal Patisserie", 14, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Invoice: #${order._id}`, 14, 28);
+    
+    const tableRows = order.items.map((item: any) => [
+      item.name, item.quantity, `Rs. ${item.price}`, `Rs. ${item.price * item.quantity}`
+    ]);
+
+    autoTable(doc, {
+      startY: 40,
+      head: [['Cake Name', 'Qty', 'Price', 'Total']],
+      body: tableRows,
+      headStyles: { fillColor: [0, 0, 0] },
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(14);
+    doc.text(`Grand Total: Rs. ${order.totalAmount}`, 140, finalY, { align: "right" });
+    doc.save(`Invoice_${order._id.slice(-6)}.pdf`);
+  };
+
   const filteredOrders = activeTab === "All" ? orders : orders.filter((o: any) => o.status === activeTab);
-  const indexOfLastOrder = currentPage * ordersPerPage;
-  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const currentOrders = filteredOrders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage);
   const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Pending': return 'bg-orange-100 text-orange-900 border-orange-300';
-      case 'Processing': return 'bg-blue-100 text-blue-900 border-blue-300';
-      case 'Shipped': return 'bg-purple-100 text-purple-900 border-purple-300';
-      case 'Delivered': return 'bg-green-100 text-green-900 border-green-300';
+      case 'Pending': return 'bg-orange-100 text-orange-900 border-orange-200';
+      case 'Processing': return 'bg-blue-100 text-blue-900 border-blue-200';
+      case 'Shipped': return 'bg-purple-100 text-purple-900 border-purple-200';
+      case 'Delivered': return 'bg-green-100 text-green-900 border-green-200';
       default: return 'bg-gray-100 text-gray-900';
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#fdfdfd]">
-      <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-black"></div>
-    </div>
-  );
+  if (loading) return <div className="min-h-screen flex items-center justify-center font-black uppercase tracking-widest text-xs animate-pulse">Syncing Boutique...</div>;
 
   return (
-    <div className="p-3 md:p-10 bg-[#f4f4f4] min-h-screen font-sans text-black">
+    <div className="p-4 md:p-10 bg-[#f8f8f8] min-h-screen font-sans text-black">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-6">
-          <div className="space-y-1">
-            <h1 className="text-3xl md:text-5xl font-serif font-black text-black italic leading-tight">Bakery Orders</h1>
-            <p className="text-gray-600 font-bold text-sm md:text-base">Real-time command center for CakeBiss.</p>
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
+          <div className="space-y-2">
+            <Link href="/admin" className="text-gray-400 hover:text-black transition-colors flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+              <ArrowLeft size={14} /> Back to Dashboard
+            </Link>
+            <h1 className="text-4xl md:text-6xl font-serif font-black italic">Orders Vault</h1>
           </div>
-          <div className="w-full md:w-auto bg-black text-white px-8 py-4 rounded-3xl shadow-2xl flex justify-between items-center md:block">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 md:block">Active Orders</span>
-            <span className="text-2xl font-black">{filteredOrders.length}</span>
-          </div>
-        </div>
-
-        {/* --- Status Tabs (Mobile Scrollable) --- */}
-        <div className="overflow-x-auto no-scrollbar mb-8 -mx-3 px-3 md:mx-0 md:px-0">
-          <div className="flex gap-2 min-w-max bg-white/50 p-2 rounded-[2rem] border border-gray-200">
-            {["All", "Pending", "Processing", "Shipped", "Delivered"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
-                className={`px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${
-                  activeTab === tab ? "bg-black text-white shadow-xl scale-105" : "text-gray-500 hover:bg-white"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+          <div className="bg-black text-white px-8 py-4 rounded-3xl shadow-xl flex items-center gap-4">
+            <ShoppingBag className="text-cake-gold" />
+            <div>
+               <p className="text-[9px] font-black uppercase opacity-50 tracking-widest leading-none">Total {activeTab}</p>
+               <span className="text-2xl font-black leading-none">{filteredOrders.length}</span>
+            </div>
           </div>
         </div>
 
-        {/* Orders List */}
-        <div className="grid grid-cols-1 gap-6 md:gap-8">
-          {currentOrders.length > 0 ? currentOrders.map((order: any) => (
-            <div key={order._id} className="bg-white rounded-[2.5rem] shadow-sm border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300">
-              
-              {/* Card Top Bar */}
-              <div className="bg-gray-50 p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 bg-black text-white rounded-2xl flex items-center justify-center text-sm font-black shadow-lg">#{order._id.slice(-2)}</div>
-                  <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Transaction ID</p>
-                    <p className="text-xs font-mono font-black text-black break-all">#{order._id}</p>
-                  </div>
-                </div>
-                <div className="w-full md:w-auto flex items-center justify-between md:justify-end gap-6 border-t md:border-none pt-4 md:pt-0">
-                   <div className="text-left md:text-right">
-                      <p className="text-[10px] font-black text-gray-400 uppercase">Amount Paid</p>
-                      <p className="text-2xl font-black text-black">₹{order.totalAmount}</p>
-                   </div>
-                   <select 
-                    value={order.status}
-                    onChange={(e) => updateStatus(order._id, e.target.value)}
-                    className={`px-5 py-3 rounded-2xl text-[10px] font-black border-2 uppercase tracking-widest outline-none cursor-pointer transition-all ${getStatusColor(order.status)}`}
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Processing">Processing</option>
-                    <option value="Shipped">Shipped</option>
-                    <option value="Delivered">Delivered</option>
-                  </select>
-                </div>
-              </div>
+        {/* Filters */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-8">
+          {["All", "Pending", "Processing", "Shipped", "Delivered"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
+              className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                activeTab === tab ? "bg-black text-white shadow-xl scale-105" : "bg-white text-gray-400 border border-gray-100"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
 
-              {/* Card Content Grid */}
-              <div className="p-6 md:p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        {/* Orders Grid */}
+        <div className="space-y-8">
+          {currentOrders.map((order: any) => (
+            <div key={order._id} className="bg-white rounded-[3rem] border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500">
+              <div className="p-8 md:p-10 flex flex-col lg:flex-row gap-10">
                 
-                {/* Section 1: Cake Details */}
-                <div className="space-y-4">
-                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] flex items-center gap-2">
-                    <span className="w-4 h-[2px] bg-black"></span> Menu Items
-                  </h3>
-                  <div className="space-y-2">
-                    {order.items.map((item: any, i: number) => (
-                      <div key={i} className="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                        <span className="font-black text-sm">{item.name} <span className="text-gray-400 ml-1">x{item.quantity}</span></span>
-                        <span className="font-black text-sm">₹{item.price * item.quantity}</span>
-                      </div>
-                    ))}
+                {/* 1. Items Section (Updated) */}
+                <div className="flex-[1.2] space-y-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-gray-300 uppercase">#{order._id.slice(-8)}</span>
+                    <select 
+                      value={order.status}
+                      onChange={(e) => updateStatus(order._id, e.target.value)}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase border-2 outline-none ${getStatusColor(order.status)}`}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Processing">Processing</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Delivered">Delivered</option>
+                    </select>
+                  </div>
+                  
+                  {/* Items List Table-like UI */}
+                  <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100">
+                    <h4 className="text-[9px] font-black uppercase text-gray-400 mb-4 tracking-widest">Ordered Masterpieces</h4>
+                    <div className="space-y-3">
+                      {order.items.map((item: any, i: number) => (
+                        <div key={i} className="flex justify-between items-center group/item">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center text-[10px] font-black">
+                              {item.quantity}x
+                            </div>
+                            <span className="text-sm font-black text-black group-hover/item:text-cake-gold transition-colors">{item.name}</span>
+                          </div>
+                          <span className="text-sm font-black opacity-40 italic">₹{item.price * item.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between items-end">
+                       <p className="text-[10px] font-black uppercase text-gray-400">Total Paid</p>
+                       <p className="text-3xl font-black italic tracking-tighter text-black">₹{order.totalAmount}</p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Section 2: Personalization (Highlighted) */}
-                <div className="bg-cake-cream/20 p-6 md:p-8 rounded-[2.5rem] border-2 border-black/5 shadow-inner">
-                  <h3 className="text-[10px] font-black text-black uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                    <span className="w-4 h-[2px] bg-black"></span> Customization
-                  </h3>
-                  <div className="space-y-4 text-sm font-black">
-                    <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
-                       <span className="text-lg">📅</span> {order.deliveryDate}
-                    </div>
-                    <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm">
-                       <span className="text-lg">🎈</span> {order.occasion}
-                    </div>
-                    <div className="mt-4 p-4 bg-black text-white rounded-2xl shadow-xl">
-                       <p className="text-[9px] font-black uppercase opacity-50 mb-1">Cake Message</p>
-                       <p className="text-base font-serif italic italic font-medium">"{order.cakeMessage || "None"}"</p>
+                {/* 2. Customization Section */}
+                <div className="flex-1 bg-cake-cream/10 p-8 rounded-[2.5rem] border border-cake-gold/5 space-y-4">
+                  <p className="text-[10px] font-black uppercase text-cake-gold tracking-widest">Personalization</p>
+                  <div className="space-y-3 font-bold text-sm">
+                    <p className="flex items-center gap-3"><Calendar size={16}/> {order.deliveryDate}</p>
+                    <p className="flex items-center gap-3"><Gift size={16}/> {order.occasion}</p>
+                    <div className="mt-4 p-4 bg-white rounded-2xl shadow-inner italic text-xs text-stone-600 border border-gray-50 leading-relaxed">
+                      "{order.cakeMessage || "No message"}"
                     </div>
                   </div>
+                  <button onClick={() => generateBill(order)} className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-gray-200 hover:bg-black hover:text-white transition-all shadow-sm">
+                    <Download size={14} /> Get Invoice
+                  </button>
                 </div>
 
-                {/* Section 3: Logistics */}
-                <div className="space-y-6">
+                {/* 3. Shipping & WhatsApp */}
+                <div className="flex-1 space-y-6">
                   <div>
-                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-3">Shipment To</h3>
-                    <p className="text-sm font-black leading-snug text-black">{order.address}</p>
-                    <div className="mt-3 inline-flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-xl text-xs font-black">
-                      📍 PIN: {order.pincode}
-                    </div>
+                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                       <MapPin size={12}/> Delivery Address
+                    </h4>
+                    <p className="text-sm font-black leading-snug">{order.address}</p>
+                    <span className="text-[10px] font-black bg-gray-100 px-3 py-1 rounded-md mt-2 inline-block">PIN: {order.pincode}</span>
                   </div>
-                  <div className="pt-6 border-t border-gray-100">
-                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-2">Customer Hotline</h3>
-                    <a href={`tel:${order.phone}`} className="text-2xl font-black text-black hover:text-gray-600 transition-colors flex items-center gap-3">
-                       <span className="text-xl">📞</span> {order.phone}
+                  
+                  <div className="flex items-center gap-3 pt-6 border-t border-gray-100">
+                    <a href={`tel:${order.phone}`} className="flex-1 h-16 flex items-center justify-center gap-3 bg-gray-50 rounded-[1.5rem] font-black text-sm hover:bg-black hover:text-white transition-all border border-gray-100">
+                      <Phone size={18} /> Call
                     </a>
-                    <p className="text-[10px] font-bold text-gray-400 mt-4 uppercase">
-                      Placed: {new Date(order.createdAt).toLocaleString('en-IN')}
-                    </p>
+                    <button 
+                      onClick={() => sendWhatsApp(order)}
+                      className="h-16 w-16 flex items-center justify-center bg-green-500 text-white rounded-[1.5rem] hover:bg-green-600 transition-all shadow-xl shadow-green-200"
+                    >
+                      <MessageCircle size={28} />
+                    </button>
                   </div>
                 </div>
 
               </div>
             </div>
-          )) : (
-            <div className="text-center py-32 bg-white rounded-[3rem] border-4 border-dashed border-gray-100">
-               <span className="text-6xl block mb-4">📭</span>
-               <p className="text-gray-400 font-black uppercase tracking-widest">No orders in {activeTab}</p>
-            </div>
-          )}
+          ))}
         </div>
 
-        {/* --- Responsive Pagination --- */}
+        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex flex-col md:flex-row justify-center items-center gap-6 mt-16">
-            <button 
-              disabled={currentPage === 1}
-              onClick={() => { setCurrentPage(p => p - 1); window.scrollTo(0,0); }}
-              className="w-full md:w-auto px-10 py-5 rounded-[2rem] bg-black text-white text-xs font-black tracking-widest disabled:opacity-20 hover:scale-105 active:scale-95 transition-all shadow-2xl"
-            >
-              PREVIOUS PAGE
-            </button>
-            <span className="text-sm font-black text-black bg-white px-6 py-3 rounded-full border border-gray-200 shadow-sm">
-              {currentPage} / {totalPages}
-            </span>
-            <button 
-              disabled={currentPage === totalPages}
-              onClick={() => { setCurrentPage(p => p + 1); window.scrollTo(0,0); }}
-              className="w-full md:w-auto px-10 py-5 rounded-[2rem] bg-black text-white text-xs font-black tracking-widest disabled:opacity-20 hover:scale-105 active:scale-95 transition-all shadow-2xl"
-            >
-              NEXT PAGE
-            </button>
+          <div className="flex justify-center items-center gap-6 mt-16 pb-10">
+            <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="px-10 py-5 rounded-[2rem] bg-black text-white text-[10px] font-black tracking-widest shadow-2xl disabled:opacity-20">PREVIOUS</button>
+            <span className="font-black text-xs">{currentPage} / {totalPages}</span>
+            <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="px-10 py-5 rounded-[2rem] bg-black text-white text-[10px] font-black tracking-widest shadow-2xl disabled:opacity-20">NEXT</button>
           </div>
         )}
       </div>
