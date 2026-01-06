@@ -8,6 +8,9 @@ const OrderSchema = new Schema({
       quantity: { type: Number, required: true },
       price: { type: Number, required: true },
       image: { type: String },
+      // --- Naye Fields Weight ke liye ---
+      weight: { type: Number }, // Example: 0.5, 1, 2
+      unit: { type: String, default: 'kg' }, // Example: kg or lb
     }
   ],
   totalAmount: { type: Number, required: true },
@@ -16,16 +19,15 @@ const OrderSchema = new Schema({
   pincode: { type: String, required: true },
   phone: { type: String, required: true },
   
-  // --- New Customization Fields ---
-  deliveryDate: { type: String, required: true }, // Delivery kab chahiye
+  // --- Customization Fields ---
+  deliveryDate: { type: String, required: true }, 
   occasion: { 
     type: String, 
     enum: ['Birthday', 'Anniversary', 'Wedding', 'Other'], 
     default: 'Birthday' 
   },
-  cakeMessage: { type: String }, // Cake par kya likhna hai (e.g. Happy Birthday Rahul)
-  instructions: { type: String }, // Extra note (e.g. Make it eggless)
-  // -------------------------------
+  cakeMessage: { type: String }, 
+  instructions: { type: String }, 
 
   status: { 
     type: String, 

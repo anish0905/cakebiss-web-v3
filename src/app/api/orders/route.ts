@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../auth/[...nextauth]/route";
 
+
 export async function POST(request: Request) {
   try {
     await dbConnect();
@@ -14,41 +15,53 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Login required to order" }, { status: 401 });
     }
 
-    // Frontend se naye customization fields ko destruct karein
+    const body = await request.json();
     const { 
-      items, 
+      items, // Ye cart items ka array hai
       totalAmount, 
       deliveryCharge, 
       address, 
       pincode, 
       phone,
-      deliveryDate,  // Naya field
-      occasion,      // Naya field
-      cakeMessage    // Naya field
-    } = await request.json();
+      deliveryDate,
+      occasion,
+      cakeMessage,
+      instructions // Extra field agar user ne koi note likha ho
+    } = body;
 
-    // Database mein naya order create karein
+    // 1. Items ko map karein taaki Weight aur Unit sahi se save ho
+    const orderItems = items.map((item: any) => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: item.discountPrice > 0 ? item.discountPrice : item.price,
+      image: item.image,
+      weight: item.weight, // <--- Cart se weight database mein save hoga
+      unit: item.unit      // <--- Cart se unit database mein save hoga
+    }));
+
+    // 2. Database mein naya order create karein
     const newOrder = await Order.create({
       user: session.user.id, 
-      items,
+      items: orderItems, // Mapped items use karein
       totalAmount,      
       deliveryCharge,   
       address,
       pincode,          
       phone,
-      deliveryDate,     // Save to DB
-      occasion,        // Save to DB
-      cakeMessage,     // Save to DB
+      deliveryDate,     
+      occasion,        
+      cakeMessage,     
+      instructions      
     });
 
     return NextResponse.json({ success: true, data: newOrder }, { status: 201 });
   } catch (error: any) {
     console.error("Order creation error:", error);
-    // Validation errors ko handle karne ke liye
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
 }
 
+// GET method (Admin ke liye) same rahega...
 export async function GET() {
   try {
     await dbConnect();
