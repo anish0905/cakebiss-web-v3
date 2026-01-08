@@ -237,7 +237,7 @@ export default function AdminOrders() {
   </div>
 
   <div className="relative z-10 flex flex-col h-full">
-    {/* Section Title with Icon */}
+    {/* Section Title with Icons */}
     <div className="flex items-center gap-2 mb-6 border-b border-cake-gold/10 pb-4">
       <MessageSquareText size={16} className="text-cake-gold" />
       <p className="text-[10px] font-black uppercase text-cake-gold tracking-[0.3em]">Artisan Instructions</p>
