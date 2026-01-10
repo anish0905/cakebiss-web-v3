@@ -9,9 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@imgly/background-removal": "^1.7.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
+    "@types/three": "^0.182.0",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.8.0",
-    "framer-motion": "^12.23.26",
+    "framer-motion": "^12.25.0",
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.562.0",
@@ -20,6 +24,7 @@
     "next-auth": "^4.24.13",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "three": "^0.182.0",
     "zustand": "^5.0.9"
   },
   "devDependencies": {

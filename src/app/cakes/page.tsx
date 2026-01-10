@@ -2,7 +2,7 @@
 import AddToCartBtn from "../../components/AddToCartBtn";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, SlidersHorizontal, ArrowRight, Tag } from "lucide-react";
+import { Search, Sparkles, Filter } from "lucide-react";
 import Link from "next/link";
 
 export default function CakesPage() {
@@ -38,42 +38,59 @@ export default function CakesPage() {
   }, [search, activeCategory, cakes]);
 
   return (
-    <div className="min-h-screen bg-[#fffcf9] pt-28 pb-20 px-6 font-sans">
-      <div className="max-w-7xl mx-auto">
+    // Background: Same as Home Page (#0a0a0a)
+    <div className="min-h-screen bg-[#0a0a0a] pt-28 pb-20 px-6 font-sans text-white">
+      
+      {/* ⚡ Background Glow Effects (Home Page Style) */}
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#ff4d6d05] rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#7209b705] rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
         
         {/* Header Section */}
         <div className="text-center mb-16 space-y-4">
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-serif italic text-black"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center justify-center gap-2 text-[#ff4d6d]"
           >
-            The Collection
+            <Sparkles size={14} className="animate-pulse" />
+            <span className="uppercase tracking-[0.4em] text-[10px] font-bold">The Royal Gallery</span>
+          </motion.div>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-6xl md:text-8xl font-black tracking-tighter"
+          >
+            PURE <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff4d6d] to-[#f9829b]">COLLECTION.</span>
           </motion.h1>
-          <p className="text-gray-400 font-black uppercase text-[10px] tracking-[0.4em]">Handcrafted for your finest celebrations</p>
+          <p className="text-gray-500 max-w-lg mx-auto text-sm md:text-base">
+            Premium 3D desserts designed for the extraordinary.
+          </p>
         </div>
 
-        {/* Search & Filter Bar */}
-        <div className="flex flex-col md:flex-row gap-6 items-center justify-between mb-16 bg-white p-4 rounded-[2.5rem] shadow-sm border border-gray-100">
-          <div className="relative w-full md:w-1/3">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+        {/* Search & Filter Bar (Glassmorphism Style) */}
+        <div className="flex flex-col md:flex-row gap-6 items-center justify-between mb-20 bg-white/5 backdrop-blur-xl p-3 rounded-[2.5rem] border border-white/10 shadow-2xl">
+          <div className="relative w-full md:w-1/3 ml-2">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
             <input
               type="text"
-              placeholder="Search by flavor or name..."
-              className="w-full pl-12 pr-4 py-3 rounded-full bg-gray-50 border-none outline-none focus:ring-2 focus:ring-cake-gold font-medium text-sm"
+              placeholder="Find your flavor..."
+              className="w-full pl-12 pr-4 py-3 rounded-full bg-white/5 border-none outline-none text-white placeholder:text-gray-600 focus:ring-1 focus:ring-[#ff4d6d] text-sm transition-all"
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           
-          <div className="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto px-2">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shrink-0 ${
+                className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all shrink-0 border ${
                   activeCategory === cat
-                    ? "bg-black text-white shadow-lg"
-                    : "bg-gray-50 text-gray-400 hover:bg-gray-100"
+                    ? "bg-[#ff4d6d] border-[#ff4d6d] text-white shadow-[0_0_20px_rgba(255,77,109,0.4)]"
+                    : "bg-transparent border-white/10 text-gray-400 hover:border-white/30"
                 }`}
               >
                 {cat}
@@ -92,47 +109,51 @@ export default function CakesPage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="group bg-white rounded-[2.5rem] border border-gray-100 flex flex-col h-full hover:shadow-2xl transition-all duration-500 overflow-hidden"
+                className="group relative bg-[#111] rounded-[2.5rem] border border-white/5 flex flex-col h-full hover:border-[#ff4d6d50] transition-all duration-500 overflow-hidden shadow-2xl"
               >
-                {/* Image Section with Detail Link */}
+                {/* Image Section */}
                 <Link href={`/cakes/${cake._id}`} className="relative h-72 overflow-hidden block">
-                  <img src={cake.image} alt={cake.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                  <img src={cake.image} alt={cake.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" />
                   
-                  {/* Category & Weight Tags */}
-                  <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    <span className="bg-black/80 backdrop-blur-md text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">{cake.category}</span>
-                    <span className="bg-white/90 backdrop-blur-sm text-black px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border border-black/5">{cake.weight}{cake.unit}</span>
+                  {/* Pink Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent opacity-80" />
+
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-[#ff4d6d] text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-lg">
+                      {cake.category}
+                    </span>
                   </div>
 
-                  {/* Discount Badge */}
                   {cake.discountPrice > 0 && (
-                    <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg">
-                      OFFER
+                    <div className="absolute top-4 right-4 bg-white text-black px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">
+                      Special Offer
                     </div>
                   )}
                 </Link>
 
                 {/* Content Section */}
-                <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-xl font-serif font-black italic text-black mb-2">{cake.name}</h3>
-                  <p className="text-gray-400 text-[10px] font-medium italic line-clamp-2 mb-4">"{cake.description}"</p>
+                <div className="p-7 flex flex-col flex-grow relative">
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#ff4d6d] transition-colors uppercase tracking-tight">
+                    {cake.name}
+                  </h3>
+                  <p className="text-gray-500 text-xs italic line-clamp-2 mb-6 opacity-70">"{cake.description}"</p>
                   
-                  <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
-                    <div>
-                      {cake.discountPrice > 0 ? (
-                        <>
-                          <span className="text-[10px] block text-gray-300 line-through">₹{cake.price}</span>
-                          <span className="text-xl font-black text-black">₹{cake.discountPrice}</span>
-                        </>
-                      ) : (
-                        <span className="text-xl font-black text-black">₹{cake.price}</span>
+                  <div className="mt-auto pt-5 border-t border-white/5 flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-2xl font-black text-white">
+                        ₹{cake.discountPrice > 0 ? cake.discountPrice : cake.price}
+                      </span>
+                      {cake.discountPrice > 0 && (
+                        <span className="text-[10px] text-gray-600 line-through">₹{cake.price}</span>
                       )}
                     </div>
 
                     {cake.quantity > 0 ? (
-                      <AddToCartBtn cake={cake} />
+                      <div className="hover:scale-110 transition-transform">
+                        <AddToCartBtn cake={cake} />
+                      </div>
                     ) : (
-                      <span className="text-[8px] font-black uppercase text-red-500 bg-red-50 px-3 py-1.5 rounded-full">Out of Stock</span>
+                      <span className="text-[8px] font-bold uppercase text-gray-600 border border-white/10 px-3 py-1 rounded-full">Sold Out</span>
                     )}
                   </div>
                 </div>
@@ -140,12 +161,6 @@ export default function CakesPage() {
             ))}
           </AnimatePresence>
         </div>
-        
-        {filteredCakes.length === 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
-            <p className="text-gray-400 font-serif italic text-2xl">No masterpieces found matching your search. 🍰</p>
-          </motion.div>
-        )}
       </div>
     </div>
   );
