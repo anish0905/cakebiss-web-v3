@@ -1,15 +1,21 @@
 "use client";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Instagram, Twitter, Facebook, ArrowUpRight, Sparkles } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
+  // Social links ko object array mein rakhein taki hum icons ko safely render kar sakein
+  const socialLinks = [
+    { icon: Instagram, href: "#" },
+    { icon: Twitter, href: "#" },
+    { icon: Facebook, href: "#" },
+  ];
+
   return (
     <footer className="bg-[#050505] text-white pt-24 pb-10 px-6 border-t border-white/5 relative overflow-hidden">
       
-      {/* 🔮 Background Glow (Subtle) */}
+      {/* 🔮 Background Glow */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[300px] bg-[#ff4d6d03] blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -24,10 +30,12 @@ export default function Footer() {
             <p className="text-gray-500 max-w-sm leading-relaxed text-sm font-medium italic">
               "Hum banate hain sirf desserts nahi, balki ek yaadgar anubhav. Har bite mein premium quality aur 3D art ka sangam."
             </p>
+            
+            {/* Social Icons Fixed Logic */}
             <div className="flex gap-6">
-              {[<Instagram />, <Twitter />, <Facebook />].map((icon, i) => (
-                <Link key={i} href="#" className="p-3 bg-white/5 rounded-2xl hover:bg-[#ff4d6d] hover:text-white transition-all duration-300">
-                  {cloneElement(icon as React.ReactElement, { size: 18 })}
+              {socialLinks.map((social, i) => (
+                <Link key={i} href={social.href} className="p-3 bg-white/5 rounded-2xl hover:bg-[#ff4d6d] hover:text-white transition-all duration-300">
+                  <social.icon size={18} />
                 </Link>
               ))}
             </div>
@@ -44,7 +52,7 @@ export default function Footer() {
                 { name: "Private Events", href: "#" },
               ].map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm font-bold text-gray-400 hover:text-[#ff4d6d] flex items-center gap-2 group transition-all">
+                  <Link href={link.href} className="text-sm font-bold text-gray-400 hover:text-[#ff4d6d] flex items-center gap-2 group transition-all text-nowrap">
                     {link.name} 
                     <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                   </Link>
@@ -88,6 +96,3 @@ export default function Footer() {
     </footer>
   );
 }
-
-// Helper for icon cloning
-import { cloneElement } from "react";
