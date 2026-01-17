@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Truck, ShieldCheck, ArrowLeft, Sparkles, Zap } from "lucide-react";
+import { Star, Truck, ShieldCheck, ArrowLeft, Zap, Leaf, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import AddToCartBtn from "../../../components/AddToCartBtn";
 
@@ -9,155 +9,147 @@ export default function CakeDetails({ params }: { params: Promise<{ id: string }
   const { id } = use(params);
   const [cake, setCake] = useState<any>(null);
   const [activeImg, setActiveImg] = useState("");
-  const [relatedCakes, setRelatedCakes] = useState([]);
+  const [selectedVariant, setSelectedVariant] = useState<any>(null);
 
   useEffect(() => {
     fetch(`/api/cakes/${id}`)
       .then((res) => res.json())
       .then((json) => {
-        setCake(json.data);
-        setActiveImg(json.data.image);
-        fetch(`/api/cakes?category=${json.data.category}&limit=4`)
-          .then(r => r.json())
-          .then(related => setRelatedCakes(related.data.filter((c:any) => c._id !== id)));
+        if (json.success) {
+          setCake(json.data);
+          setActiveImg(json.data.image);
+          if (json.data.priceVariants?.length > 0) setSelectedVariant(json.data.priceVariants[0]);
+        }
       });
   }, [id]);
 
-  if (!cake) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505]">
-      <div className="w-10 h-10 border-2 border-[#ff4d6d] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_#ff4d6d]" />
-    </div>
-  );
+  if (!cake) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#ff4d6d] border-t-transparent rounded-full animate-spin" /></div>;
+
+  const allImages = [cake.image, ...(cake.extraImages || [])];
 
   return (
-    <main className="min-h-screen bg-[#050505] pb-20 pt-24 px-5 text-white overflow-hidden relative">
+    // Added pt-24 for mobile and md:pt-32 for desktop to give space for fixed Navbar
+    <main className="min-h-screen bg-[#050505] text-white font-sans selection:bg-[#ff4d6d] pb-32 md:pb-20 pt-24 md:pt-32">
       
-      {/* 🔮 Background Glows */}
-      <div className="absolute top-0 right-0 w-full h-[60vh] bg-gradient-to-b from-[#ff4d6d08] to-transparent pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-10">
         
-        {/* Back Link - Smaller for Mobile */}
-        <Link href="/cakes" className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.3em] mb-8 text-gray-500 hover:text-[#ff4d6d] transition-all">
-          <ArrowLeft size={14} /> Back
+        {/* Navigation - Back Button with clear spacing */}
+        <Link href="/cakes" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-gray-500 hover:text-[#ff4d6d] mb-8 transition-all">
+          <ArrowLeft size={14} /> Back to Gallery
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16 items-start">
           
-          {/* --- LEFT: HD GALLERY --- */}
-          <div className="space-y-5">
-            <motion.div 
-              layoutId={`cake-${cake._id}`}
-              className="relative aspect-square md:aspect-[4/5] rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden bg-[#0a0a0a] border border-white/5"
-            >
-              <img src={activeImg} className="w-full h-full object-cover" alt={cake.name} />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          {/* --- LEFT: IMAGE SECTION --- */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="relative aspect-square md:aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-[#111] border border-white/5 shadow-2xl">
+              <AnimatePresence mode="wait">
+                <motion.img 
+                  key={activeImg}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  src={activeImg} 
+                  className="w-full h-full object-cover" 
+                  alt={cake.name} 
+                />
+              </AnimatePresence>
               
-              <div className="absolute top-6 left-6">
-                <span className="backdrop-blur-md bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-[8px] font-bold uppercase tracking-widest">
-                  {cake.category}
-                </span>
-              </div>
-            </motion.div>
+              {cake.isEggless && (
+                <div className="absolute top-6 left-6 backdrop-blur-md bg-green-500/10 border border-green-500/20 text-green-500 px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest flex items-center gap-2">
+                  <Leaf size={12} /> EGGLESS
+                </div>
+              )}
+            </div>
 
-            {/* Thumbnails - Smaller for mobile */}
-            <div className="flex gap-3 overflow-x-auto no-scrollbar py-2">
-              {[cake.image, ...(cake.extraImages || [])].slice(0, 4).map((img, i) => (
+            {/* Thumbnails Row */}
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+              {allImages.map((img, i) => (
                 <button 
                   key={i} 
                   onClick={() => setActiveImg(img)}
-                  className={`relative w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-2xl overflow-hidden border transition-all ${activeImg === img ? "border-[#ff4d6d] scale-95" : "border-white/5 opacity-40"}`}
+                  className={`relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden border-2 transition-all ${activeImg === img ? "border-[#ff4d6d] scale-105" : "border-transparent opacity-40 hover:opacity-100"}`}
                 >
-                  <img src={img} className="w-full h-full object-cover" />
+                  <img src={img} className="w-full h-full object-cover" alt="preview" />
                 </button>
               ))}
             </div>
           </div>
 
           {/* --- RIGHT: PRODUCT INFO --- */}
-          <div className="pt-2">
-            <div className="space-y-8">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-[#ff4d6d]">
-                  <Zap size={12} fill="currentColor" />
-                  <span className="text-[9px] font-black uppercase tracking-[0.4em]">Artisan Craft</span>
-                </div>
-                
-                {/* Heading: Optimized size for mobile */}
-                <h1 className="text-4xl md:text-7xl lg:text-8xl font-black leading-[1] tracking-tighter uppercase italic">
-                  {cake.name}
-                </h1>
-
-                <div className="flex items-center gap-4">
-                  <div className="flex text-[#ff4d6d] gap-0.5">
-                    {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
-                  </div>
-                  <span className="text-[8px] font-bold uppercase text-gray-600 tracking-widest">Premium Selection</span>
-                </div>
+          <div className="lg:col-span-5 space-y-10">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-[#ff4d6d]">
+                <Zap size={12} fill="currentColor" />
+                <span className="text-[10px] font-black uppercase tracking-[0.4em]">{cake.flavor} LUXE</span>
               </div>
+              <h1 className="text-5xl md:text-7xl font-black tracking-tighter italic leading-[0.9] uppercase">
+                {cake.name}
+              </h1>
+              <div className="flex items-center gap-3 text-gray-500">
+                <Star size={12} fill="#ff4d6d" className="text-[#ff4d6d]" />
+                <span className="text-[10px] font-bold uppercase tracking-widest">{cake.category} Collection</span>
+              </div>
+            </div>
 
-              {/* Description: Smaller & cleaner */}
-              <p className="text-gray-400 text-base md:text-xl leading-relaxed font-light italic border-l border-[#ff4d6d]/20 pl-5">
-                {cake.description}
-              </p>
+            <p className="text-gray-400 text-sm md:text-base leading-relaxed italic border-l-2 border-[#ff4d6d]/20 pl-6">
+              {cake.description}
+            </p>
 
-              {/* Price & Weight - Compact Grid */}
-              <div className="grid grid-cols-2 gap-8 py-8 border-y border-white/5">
+            {/* Weight Selection */}
+            <div className="space-y-4">
+              <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Select Dimensions</p>
+              <div className="flex flex-wrap gap-3">
+                {cake.priceVariants?.map((variant: any, i: number) => (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedVariant(variant)}
+                    className={`px-8 py-3 rounded-2xl text-[11px] font-black transition-all border-2 ${
+                      selectedVariant?.weight === variant.weight 
+                      ? "bg-white text-black border-white shadow-xl" 
+                      : "bg-transparent border-white/5 text-gray-500 hover:border-white/20"
+                    }`}
+                  >
+                    {variant.weight}{cake.unit}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Price & Action Bar */}
+            <div className="bg-[#111] p-8 rounded-[2.5rem] border border-white/5 shadow-3xl">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[8px] font-bold uppercase text-gray-600 tracking-[0.2em] mb-2">Price</p>
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl md:text-5xl font-black tracking-tighter text-white">₹{cake.discountPrice || cake.price}</span>
-                    {cake.discountPrice > 0 && <span className="text-sm text-gray-700 line-through">₹{cake.price}</span>}
+                  <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-1">Final Price</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-black tracking-tighter">
+                      ₹{selectedVariant?.discountPrice || selectedVariant?.price}
+                    </span>
+                    {selectedVariant?.discountPrice > 0 && (
+                      <span className="text-sm text-gray-700 line-through">₹{selectedVariant.price}</span>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <p className="text-[8px] font-bold uppercase text-gray-600 tracking-[0.2em] mb-2">Net Weight</p>
-                  <span className="text-xl md:text-3xl font-black uppercase text-[#ff4d6d]">{cake.weight} {cake.unit}</span>
-                </div>
-              </div>
-
-              {/* Actions - Better stacked for mobile */}
-              <div className="flex flex-col gap-4 pt-2">
-                <div className="h-16">
-                  <AddToCartBtn cake={cake} />
-                </div>
-                <button className="h-16 rounded-full border border-white/10 text-[9px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">
-                  Request Custom Details
-                </button>
-              </div>
-
-              {/* Features - Horizontal on mobile */}
-              <div className="grid grid-cols-2 gap-3 pt-4">
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-3">
-                  <Truck className="text-[#ff4d6d]" size={16} />
-                  <span className="text-[8px] font-bold uppercase tracking-widest text-gray-400 text-center">Express Delivery</span>
-                </div>
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-3">
-                  <ShieldCheck className="text-[#ff4d6d]" size={16} />
-                  <span className="text-[8px] font-bold uppercase tracking-widest text-gray-400 text-center">Quality Assured</span>
+                <div className="w-44">
+                  <AddToCartBtn cake={cake} selectedVariant={selectedVariant} />
                 </div>
               </div>
             </div>
+
+            {/* Trust Badges Row */}
+            <div className="flex justify-between items-center py-4 px-2 opacity-50">
+              <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
+                <Truck size={14} /> Express
+              </div>
+              <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
+                <ShieldCheck size={14} /> Hygienic
+              </div>
+              <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
+                <Star size={14} /> 5-Star
+              </div>
+            </div>
+
           </div>
         </div>
-
-        {/* RELATED SECTION - Scaled down for mobile */}
-        {relatedCakes.length > 0 && (
-          <section className="mt-24 border-t border-white/5 pt-16">
-            <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter mb-10">You may also <span className="text-[#ff4d6d]">like</span></h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-              {relatedCakes.map((c: any) => (
-                <Link href={`/cakes/${c._id}`} key={c._id} className="group">
-                  <div className="aspect-square rounded-[2rem] overflow-hidden mb-4 bg-[#111] border border-white/5">
-                    <img src={c.image} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all" />
-                  </div>
-                  <h4 className="font-bold text-[10px] uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">{c.name}</h4>
-                  <p className="text-[#ff4d6d] font-black text-xs tracking-tighter mt-1">₹{c.discountPrice || c.price}</p>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
       </div>
     </main>
   );

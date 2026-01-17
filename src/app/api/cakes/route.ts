@@ -14,16 +14,29 @@ export async function POST(request: Request) {
     await dbConnect();
     const body = await request.json();
 
-    // 1. Main Image Upload
-    const mainUpload = await cloudinary.uploader.upload(body.image, {
+    const { 
+      image, 
+      extraImagesBase64, 
+      name, 
+      description, 
+      highlights, 
+      priceVariants, 
+      category, 
+      flavor, 
+      isEggless, 
+      quantity,
+      unit 
+    } = body;
+
+    // 1. Main Image Upload to Cloudinary
+    const mainUpload = await cloudinary.uploader.upload(image, {
       folder: "cake_products/main",
     });
 
-    // 2. Extra Images Upload (Looping through the array)
-    // Maan lijiye frontend se 'extraImagesBase64' naam ka array aa raha hai
+    // 2. Extra Images Upload
     let extraImagesUrls = [];
-    if (body.extraImagesBase64 && Array.isArray(body.extraImagesBase64)) {
-      for (const base64Img of body.extraImagesBase64) {
+    if (extraImagesBase64 && Array.isArray(extraImagesBase64)) {
+      for (const base64Img of extraImagesBase64) {
         if (base64Img) {
           const res = await cloudinary.uploader.upload(base64Img, {
             folder: "cake_products/extras",
@@ -33,14 +46,22 @@ export async function POST(request: Request) {
       }
     }
 
-    // 3. New Data Object taiyar karein
+    // 3. New Data Object (Mapping all new logic)
     const newCakeData = {
-      ...body,
-      image: mainUpload.secure_url,       // Main Image URL
-      extraImages: extraImagesUrls,      // Array of 3 Extra Image URLs
+      name,
+      description,
+      highlights,      // Array of strings
+      priceVariants,   // Array of objects {weight, price, discountPrice}
+      category,
+      flavor,
+      isEggless,
+      quantity,
+      unit,
+      image: mainUpload.secure_url,
+      extraImages: extraImagesUrls,
     };
 
-    // 4. MongoDB mein Save karein
+    // 4. Create in MongoDB
     const cake = await Cake.create(newCakeData);
 
     return NextResponse.json({ success: true, data: cake }, { status: 201 });
@@ -53,6 +74,7 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     await dbConnect();
+    // Latest cakes pehle dikhane ke liye sort
     const cakes = await Cake.find({}).sort({ createdAt: -1 });
     return NextResponse.json({ success: true, data: cakes });
   } catch (error: any) {

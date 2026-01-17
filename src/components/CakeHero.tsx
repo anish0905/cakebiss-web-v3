@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useRef } from "react";
+import React, { Suspense, useRef, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { 
   useTexture, 
@@ -10,12 +10,17 @@ import {
   Sparkles,
   PerspectiveCamera
 } from "@react-three/drei";
-import { motion, Variants } from "framer-motion"; // Variants import kiya
+import { motion } from "framer-motion"; 
 import * as THREE from "three";
 
-// --- PNG to 3D Plane Component ---
 function CakeImageModel({ url }: { url: string }) {
   const texture = useTexture(url);
+  
+  // Image ko sharp karne ke liye settings
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.needsUpdate = true;
+
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -34,7 +39,7 @@ function CakeImageModel({ url }: { url: string }) {
         transparent={true} 
         side={THREE.DoubleSide} 
         alphaTest={0.5}
-        emissive={new THREE.Color("#ff4d6d")}
+        emissive={new THREE.Color("#ffffff")}
         emissiveIntensity={0.1}
       />
     </mesh>
@@ -42,125 +47,73 @@ function CakeImageModel({ url }: { url: string }) {
 }
 
 const CakeHero = () => {
-  // Animation Variants with explicit Types
-  const containerVars: Variants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { 
-        staggerChildren: 0.3, 
-        delayChildren: 0.5 
-      }
-    }
-  };
+  const [mounted, setMounted] = useState(false);
 
-  const itemVars: Variants = {
-    hidden: { opacity: 0, x: -50 },
-    visible: { 
-      opacity: 1, 
-      x: 0, 
-      transition: { 
-        duration: 0.8, 
-        ease: [0.22, 1, 0.36, 1] // "easeOut" ki jagah cubic-bezier use kiya (Type Safe)
-      } 
-    }
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return <div className="h-screen bg-[#0a0a0a]" />;
 
   return (
     <section className="relative h-screen w-full bg-[#0a0a0a] overflow-hidden flex flex-col md:flex-row items-center">
       
-      {/* ⚡ Background Effects */}
-      <div className="absolute top-0 right-0 w-[50%] h-full bg-gradient-to-l from-[#ff4d6d15] to-transparent pointer-events-none" />
-      <div className="absolute -top-20 -left-20 w-96 h-96 bg-[#7209b7] rounded-full blur-[150px] opacity-20" />
+      {/* 🌑 Mobile Dark Overlay - No Blur */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/90 z-20 md:hidden pointer-events-none" />
 
-      {/* 🖋️ Left Side: Rich Text Content */}
-      <motion.div 
-        className="relative z-10 w-full md:w-1/2 px-8 md:pl-24 flex flex-col justify-center"
-        variants={containerVars}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.span variants={itemVars} className="text-[#ff4d6d] font-bold tracking-[0.3em] uppercase mb-4 block mt-14">
+      {/* 🖋️ Text Section */}
+      <div className="relative z-30 w-full md:w-1/2 px-6 md:pl-24 flex flex-col justify-center mt-20 md:mt-0 text-center md:text-left">
+        <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#ff4d6d] font-black tracking-[0.3em] uppercase mb-4 block text-[10px]">
           Premium Dessert Experience
         </motion.span>
-
-        <h1 
-          className="text-6xl md:text-9xl font-[1000] text-white leading-[0.85] tracking-tighter mb-6 italic"
-          style={{
-            textShadow: "10px 10px 20px rgba(0,0,0,1), 0 0 20px rgba(255,77,109,0.2)"
-          }}
-        >
+        <h1 className="text-6xl md:text-9xl font-black text-white leading-[0.85] tracking-tighter mb-6 italic">
           PURE <br />
-          <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#ff4d6d] via-[#f9829b] to-[#ff4d6d] bg-[length:200%_auto] animate-gradient-flow italic">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff4d6d] via-[#f9829b] to-[#ff4d6d] bg-[length:200%_auto] animate-gradient-flow italic">
             DELIGHT.
           </span>
         </h1>
+        <p className="text-gray-200 md:text-gray-400 text-sm md:text-xl max-w-md mx-auto md:mx-0 leading-relaxed mb-10 font-medium">
+          Hum banate hain sirf desserts nahi, balki ek yaadgar anubhav. Har bite mein premium quality.
+        </p>
+        <div className="flex justify-center md:justify-start">
+           <button className="px-10 py-4 bg-[#ff4d6d] text-white rounded-full font-black text-[10px] uppercase tracking-widest shadow-2xl">
+             Order Now — ₹999
+           </button>
+        </div>
+      </div>
 
-        <motion.p variants={itemVars} className="text-gray-400 text-lg md:text-xl max-w-md leading-relaxed mb-10">
-          Hum banate hain sirf desserts nahi, balki ek yaadgar anubhav. Har bite mein premium quality aur 3D art ka sangam. 
-        </motion.p>
-
-        <motion.div variants={itemVars} className="flex flex-wrap gap-6">
-          <button className="px-10 py-4 bg-[#ff4d6d] text-white rounded-full font-bold shadow-[0_10px_30px_rgba(255,77,109,0.3)] hover:scale-105 transition-all active:scale-95">
-            Book Now — ₹999
-          </button>
-          <button className="px-10 py-4 border border-white/10 text-white rounded-full font-bold hover:bg-white/5 transition-all">
-            Explore Flavors
-          </button>
-        </motion.div>
-
-        <motion.div variants={itemVars} className="mt-16 flex gap-10 border-t border-white/10 pt-10">
-          <div>
-            <h3 className="text-white text-2xl font-bold">12k+</h3>
-            <p className="text-gray-500 text-sm">Happy Clients</p>
-          </div>
-          <div>
-            <h3 className="text-white text-2xl font-bold">4.9/5</h3>
-            <p className="text-gray-500 text-sm">Top Rated</p>
-          </div>
-        </motion.div>
-      </motion.div>
-
-      {/* 🎨 Right Side: 3D Canvas */}
+      {/* 🎨 3D Canvas Section */}
       <motion.div 
-        initial={{ opacity: 0, scale: 0.5, rotate: -10 }} 
-        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-        transition={{ 
-          duration: 1.8, 
-          ease: [0.34, 1.56, 0.64, 1] // "backOut" ka cubic-bezier equivalent
-        }} 
-        className="relative w-full md:w-1/2 h-[70vh] md:h-full cursor-grab active:cursor-grabbing"
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }} 
+        // Mobile: 40% opacity (No Blur) | Desktop: 100% Opacity
+        className="absolute md:relative w-full h-full md:w-1/2 md:h-full z-10 opacity-40 md:opacity-100 transition-all duration-700"
       >
-        <Canvas dpr={[1, 2]} shadows gl={{ antialias: true }}>
-          <PerspectiveCamera makeDefault position={[0, 0, 7]} fov={35} />
-          <ambientLight intensity={0.4} /> 
-          <spotLight position={[5, 5, 5]} angle={0.3} penumbra={1} intensity={2} castShadow color="#ffffff" />
-          <pointLight position={[-5, 2, -5]} intensity={3} color="#ff4d6d" />
-          <pointLight position={[5, -2, -5]} intensity={2} color="#f9829b" />
-
+        <Canvas dpr={[1, 2]} shadows gl={{ antialias: true, alpha: true }}>
+          <PerspectiveCamera makeDefault position={[0, 0, 7.5]} fov={35} />
+          <ambientLight intensity={1} /> 
+          <pointLight position={[-5, 5, 5]} intensity={2} color="#ffffff" />
+          
           <Suspense fallback={null}>
-            <Sparkles count={120} scale={8} size={3} speed={0.4} color="#ff4d6d" />
-          <PresentationControls
-  global
-  snap={true} 
-  speed={1.5} // 'config' ki jagah 'speed' use karein smoothness ke liye
-  rotation={[0, -0.2, 0]}
-  polar={[-Math.PI / 3, Math.PI / 3]}
-  azimuth={[-Math.PI / 2, Math.PI / 2]}
->
-  <Float 
-    speed={5} 
-    rotationIntensity={0.6} 
-    floatIntensity={1.5}
-  >
-    <CakeImageModel url="/models/cakeimg.png" />
-  </Float>
-</PresentationControls>
-            <ContactShadows position={[0, -2.8, 0]} opacity={0.8} scale={15} blur={2.5} far={4.5} color="#ff4d6d" />
-            <Environment preset="studio" />
+            <Sparkles count={40} scale={6} size={2} speed={0.3} color="#ffffff" />
+            <PresentationControls
+              global
+              snap={true} 
+              speed={1.2}
+              rotation={[0, -0.2, 0]}
+              polar={[-0.1, 0.1]}
+              azimuth={[-0.3, 0.3]}
+            >
+              <Float speed={3} rotationIntensity={0.4} floatIntensity={1}>
+                <CakeImageModel url="/models/cakeimg.png" />
+              </Float>
+            </PresentationControls>
+            {/* Blur ko 0 kar diya gaya hai */}
+            <ContactShadows position={[0, -2.8, 0]} opacity={0.6} scale={10} blur={0} far={4} color="#000" />
+            <Environment preset="city" />
           </Suspense>
         </Canvas>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#ff4d6d20] rounded-full blur-[100px] -z-10" />
       </motion.div>
 
     </section>

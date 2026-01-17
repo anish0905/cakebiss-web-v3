@@ -5,19 +5,19 @@ interface CartItem {
   _id: string;
   name: string;
   price: number;
-  discountPrice: number; // Added
+  discountPrice: number;
   image: string;
-  category: string;      // Added
-  weight: number;        // Added
-  unit: string;          // Added
+  weight: number; 
+  unit: string;
+  isEggless: boolean;
   quantity: number;
 }
 
 interface CartState {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
-  removeFromCart: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void; // Added
+  removeFromCart: (id: string, weight: number) => void;
+  updateQuantity: (id: string, weight: number, quantity: number) => void;
   clearCart: () => void;
 }
 
@@ -26,36 +26,32 @@ export const useCartStore = create<CartState>()(
     (set) => ({
       cart: [],
 
-      // Add to Cart Logic
       addToCart: (item) => set((state) => {
-        const existing = state.cart.find((i) => i._id === item._id);
-        if (existing) {
-          return {
-            cart: state.cart.map((i) => 
-              i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i
-            )
-          };
+        // Find if SAME cake with SAME weight exists
+        const existingIndex = state.cart.findIndex(
+          (i) => i._id === item._id && i.weight === item.weight
+        );
+
+        if (existingIndex > -1) {
+          const newCart = [...state.cart];
+          newCart[existingIndex].quantity += (item.quantity || 1);
+          return { cart: newCart };
         }
-        return { cart: [...state.cart, { ...item, quantity: 1 }] };
+        return { cart: [...state.cart, { ...item, quantity: item.quantity || 1 }] };
       }),
 
-      // Remove Item Logic
-      removeFromCart: (id) => set((state) => ({
-        cart: state.cart.filter((i) => i._id !== id)
+      removeFromCart: (id, weight) => set((state) => ({
+        cart: state.cart.filter((i) => !(i._id === id && i.weight === weight))
       })),
 
-      // --- YE FUNCTION ERROR FIX KAREGA ---
-      updateQuantity: (id, quantity) => set((state) => ({
+      updateQuantity: (id, weight, quantity) => set((state) => ({
         cart: state.cart.map((i) => 
-          i._id === id ? { ...i, quantity: quantity } : i
+          (i._id === id && i.weight === weight) ? { ...i, quantity } : i
         )
       })),
 
-      // Clear Whole Cart
       clearCart: () => set({ cart: [] })
     }),
-    {
-      name: 'cake-cart-storage', // Browser ke localStorage mein save hoga
-    }
+    { name: 'premium-cake-cart' } // Resetting storage name
   )
 );

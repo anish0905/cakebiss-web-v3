@@ -33,7 +33,7 @@ export default function RootLayout({
       >
         <NextAuthProvider>
  <AuthProvider>
-          <Navbar />
+          <Navbar  />
           {children}
           <Footer/>
         </AuthProvider>

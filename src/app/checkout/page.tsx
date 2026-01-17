@@ -235,7 +235,7 @@ export default function CheckoutPage() {
   disabled={cart.length === 0}
   className={`w-full py-6 rounded-full font-black uppercase tracking-[0.2em] text-[13px] transition-all duration-300 shadow-xl active:scale-95 disabled:opacity-30 
     ${session 
-      ? "bg-cake-gold text-black hover:bg-[#f3cf65] hover:shadow-[0_0_25px_rgba(212,175,55,0.5)]" 
+      ? "bg-cake-gold text-black hover:bg-gray-500 hover:shadow-[0_0_25px_rgba(212,175,55,0.5)]" 
       : "bg-[#1a1a1a] text-cake-gold border border-cake-gold/30 hover:bg-black hover:border-cake-gold"
     }`}
 >
