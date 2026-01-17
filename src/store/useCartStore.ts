@@ -6,6 +6,7 @@ interface CartItem {
   name: string;
   price: number;
   discountPrice: number;
+  flavor: string;
   image: string;
   weight: number; 
   unit: string;

@@ -74,6 +74,12 @@ const Navbar = () => {
               <div className="hidden md:flex items-center gap-4 border-l border-white/10 pl-5">
                 {session ? (
                   <div className="flex items-center gap-4">
+                    {/* Admin Panel Link for Desktop */}
+                    {(session.user as any)?.role === "admin" && (
+                      <Link href="/admin" className="text-gray-500 hover:text-[#ff4d6d] transition-colors">
+                        <LayoutDashboard size={18} />
+                      </Link>
+                    )}
                     <Link href="/profile" className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#ff4d6d] to-[#7209b7] flex items-center justify-center border border-white/20">
                       <User size={14} className="text-white" />
                     </Link>
@@ -111,8 +117,15 @@ const Navbar = () => {
                     {link.name}
                   </Link>
                 ))}
-                {session?.user.role === "admin" && (
-                  <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[#ff4d6d] font-bold">Admin Panel</Link>
+                {/* Fixed Admin Check for Mobile Menu */}
+                {session?.user && (session.user as any).role === "admin" && (
+                  <Link 
+                    href="/admin" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    className="text-[#ff4d6d] font-black uppercase text-sm tracking-widest flex items-center gap-2"
+                  >
+                    <LayoutDashboard size={16} /> Admin Panel
+                  </Link>
                 )}
               </div>
             </motion.div>
